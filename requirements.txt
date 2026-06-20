@@ -1,0 +1,10 @@
+langchain
+langchain-community
+langchain-huggingface
+langchain-openai
+chromadb
+sentence-transformers
+unstructured
+markdown
+python-dotenv
+streamlit

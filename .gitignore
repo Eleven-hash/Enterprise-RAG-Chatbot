@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment configurations containing sensitive keys
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+
+# Python caches and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Local databases and diagnostic files
+# (Uncomment the line below if you want to rebuild the vector database completely on every setup)
+chroma_db/
+output.log
+
+# System files
+.DS_Store
+Thumbs.db
