@@ -8,6 +8,7 @@ from langchain.chains import create_retrieval_chain, create_history_aware_retrie
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import HumanMessage, AIMessage
+import config
 
 # Use absolute paths so it works no matter where the terminal is running from
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -18,21 +19,21 @@ st.set_page_config(page_title="RAG Chatbot", page_icon="💬", layout="centered"
 def load_vectorstore():
     """Loads the embeddings and the existing Chroma vector database."""
     embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-m3",
+        model_name=config.EMBEDDING_MODEL,
         model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": True}
     )
-    # Load the persisted database using absolute path
-    db_path = os.path.join(BASE_DIR, "chroma_db")
+    # Load the persisted database using configuration path
+    db_path = config.PERSIST_DIRECTORY
     vectorstore = Chroma(persist_directory=db_path, embedding_function=embeddings)
     return vectorstore
 
 def setup_rag_chain():
     """Sets up the LLM, prompt templates, and the full conversational RAG chain."""
     vectorstore = load_vectorstore()
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": config.RETRIEVAL_K})
     
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model_name=config.LLM_MODEL, temperature=0)
 
     # 1. Prompt to reformulate the user's question based on chat history
     contextualize_q_system_prompt = """Given a chat history and the latest user question \

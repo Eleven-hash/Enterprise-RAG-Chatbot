@@ -8,11 +8,12 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
+import config
 
 load_dotenv()
 def main():
     # 1. Load the documents from the data directory recursively
-    data_dir = "./data"
+    data_dir = config.DATA_DIRECTORY
     print(f"Loading documents recursively from directory: {data_dir}")
     if not os.path.exists(data_dir):
         print(f"Error: Directory '{data_dir}' not found.")
@@ -30,23 +31,23 @@ def main():
     # 2. Split the document into chunks
     print("Splitting document into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50,
-        separators=["\n## ", "\n### ", "\n\n", "\n", " ", ""]
+        chunk_size=config.CHUNK_SIZE,
+        chunk_overlap=config.CHUNK_OVERLAP,
+        separators=config.CHUNK_SEPARATORS
     )
     chunks = text_splitter.split_documents(all_documents)
     print(f"Created {len(chunks)} chunks.")
 
     # 3. Initialize Embeddings
-    print("Initializing HuggingFace Embeddings (BAAI/bge-m3)...")
+    print(f"Initializing HuggingFace Embeddings ({config.EMBEDDING_MODEL})...")
     embeddings = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-m3",
+        model_name=config.EMBEDDING_MODEL,
         model_kwargs={"device": "cpu"},
         encode_kwargs={"normalize_embeddings": True}
     )
 
     # 4. Create and persist Vector Store (ChromaDB)
-    persist_directory = "./chroma_db"
+    persist_directory = config.PERSIST_DIRECTORY
     print(f"Creating ChromaDB vector store at: {persist_directory}")
     vectorstore = Chroma.from_documents(
         documents=chunks,
@@ -56,9 +57,9 @@ def main():
     print("Vector store created successfully.")
 
     # 5. Setup LLM and Generation Chain
-    print("Initializing LLM (OpenAI gpt-4o-mini)...")
+    print(f"Initializing LLM (OpenAI {config.LLM_MODEL})...")
     # Make sure your OPENAI_API_KEY is set in your environment variables or a .env file!
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model_name=config.LLM_MODEL, temperature=0)
 
     prompt = ChatPromptTemplate.from_template("""You are a highly knowledgeable and helpful AI assistant.
 
@@ -77,7 +78,7 @@ RETIREVED CONTEXT:
 Question: {input}""")
 
     document_chain = create_stuff_documents_chain(llm, prompt)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": config.RETRIEVAL_K})
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
     # 6. Test Retrieval and Generation
