@@ -33,7 +33,12 @@ def setup_rag_chain():
     vectorstore = load_vectorstore()
     retriever = vectorstore.as_retriever(search_kwargs={"k": config.RETRIEVAL_K})
     
-    llm = ChatOpenAI(model_name=config.LLM_MODEL, temperature=0)
+    llm = ChatOpenAI(
+        model_name=config.LLM_MODEL,
+        temperature=0,
+        max_retries=3,
+        timeout=60
+    )
 
     # 1. Prompt to reformulate the user's question based on chat history
     contextualize_q_system_prompt = """Given a chat history and the latest user question \

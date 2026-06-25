@@ -24,7 +24,12 @@ def setup_rag_chain():
     vectorstore = load_vectorstore()
     retriever = vectorstore.as_retriever(search_kwargs={"k": config.RETRIEVAL_K})
     
-    llm = ChatOpenAI(model_name=config.LLM_MODEL, temperature=0)
+    llm = ChatOpenAI(
+        model_name=config.LLM_MODEL,
+        temperature=0,
+        max_retries=3,
+        timeout=60
+    )
 
     contextualize_q_system_prompt = """Given a chat history and the latest user question \
     which might reference context in the chat history, formulate a standalone question \
